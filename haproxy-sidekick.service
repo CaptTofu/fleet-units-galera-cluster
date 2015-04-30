@@ -1,0 +1,11 @@
+[Unit]
+Description=HaProxy Announce
+BindsTo=haproxy.service
+After=haproxy.service
+
+[Service]
+ExecStart=/bin/sh -c "while true; do /usr/bin/etcdctl --peers 127.0.0.1:4001 set /haproxy/haproxy $(/usr/bin/docker exec -i haproxy /sbin/ifconfig eth0 | /usr/bin/grep 'inet addr:' | /usr/bin/cut -d: -f2 | /usr/bin/awk '{ print $1}') --ttl 60; sleep 45; done"
+ExecStop=/usr/bin/etcdctl --peers 127.0.0.1:4001 rm /haproxy/haproxy
+
+[X-Fleet]
+MachineOf=haproxy.service

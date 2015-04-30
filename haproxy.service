@@ -1,0 +1,21 @@
+[Unit]
+Description=HA Proxy
+After=docker.service
+Requires=docker.service
+
+[Service]
+TimeoutStartSec=0
+#EnvironmentFile=/etc/environment
+ExecStartPre=-/usr/bin/docker kill haproxy 
+ExecStartPre=-/usr/bin/docker rm haproxy 
+ExecStartPre=/usr/bin/docker pull capttofu/percona_xtradb_cluster_5_6:coreos
+ExecStart=/usr/bin/docker run -rm --name haproxy \
+    -e "FLEETCTL_ENDPOINT=http://172.16.230.131:4001" \
+    -p 33006:33006 \
+    capttofu/haproxy
+ExecStop=/usr/bin/docker stop haproxy 
+ExecStop=/usr/bin/docker rm haproxy 
+
+[X-Fleet]
+Conflicts=haproxy.service
+MachineMetadata=role=minion
